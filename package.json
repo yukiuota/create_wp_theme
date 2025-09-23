@@ -1,0 +1,40 @@
+{
+  "name": "create-wp-theme",
+  "version": "1.0.0",
+  "description": "HTML to WordPress theme converter - Convert static HTML to WordPress PHP files with automatic tag conversion",
+  "main": "common/js/index.js",
+  "homepage": "https://github.com/yukiuota/create_wp_theme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yukiuota/create_wp_theme.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yukiuota/create_wp_theme/issues"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "tsc --watch",
+    "clean": "rm -rf common/js/*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "wordpress",
+    "theme",
+    "converter",
+    "typescript",
+    "html",
+    "php",
+    "web-development",
+    "frontend"
+  ],
+  "author": "yukiuota",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  }
+}

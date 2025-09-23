@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>HTML → WordPress 単一ファイル変換</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./common/css/index.css" />
+  </head>
+  <body>
+    <h1>HTML → WordPress 単一PHPファイル変換ツール</h1>
+
+    <h3>HTML入力</h3>
+    <textarea id="inputHtml" placeholder="ここにHTMLを貼り付けてください"></textarea>
+
+    <button onclick="convert()">変換する</button>
+
+    <h3>変換結果（コピーして .php に保存）</h3>
+    <textarea id="outputPhp" readonly></textarea>
+
+    <script src="./common/js/index.js"></script>
+  </body>
+</html>
