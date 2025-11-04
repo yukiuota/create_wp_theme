@@ -2,20 +2,67 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>HTML → WordPress 単一ファイル変換</title>
+    <title>HTML → WordPress 変換ツール</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./common/css/index.css" />
   </head>
   <body>
-    <h1>HTML → WordPress 単一PHPファイル変換ツール</h1>
+    <h1>HTML → WordPress 変換ツール</h1>
 
-    <h3>HTML入力</h3>
-    <textarea id="inputHtml" placeholder="ここにHTMLを貼り付けてください"></textarea>
+    <!-- タブ切り替え -->
+    <div class="tabs">
+      <button class="tab-button active" onclick="switchTab('theme')">テーマファイル変換</button>
+      <button class="tab-button" onclick="switchTab('page')">固定ページHTML変換</button>
+    </div>
 
-    <button onclick="convert()">変換する</button>
+    <!-- テーマファイル変換タブ -->
+    <div id="themeTab" class="tab-content active">
+      <h2>HTML → WordPress 単一PHPファイル変換</h2>
+      
+      <h3>HTML入力</h3>
+      <textarea id="inputHtml" placeholder="ここにHTMLを貼り付けてください"></textarea>
 
-    <h3>変換結果（コピーして .php に保存）</h3>
-    <textarea id="outputPhp" readonly></textarea>
+      <button onclick="convert()">変換する</button>
+
+      <h3>変換結果（コピーして .php に保存）</h3>
+      <textarea id="outputPhp" readonly></textarea>
+    </div>
+
+    <!-- 固定ページHTML変換タブ -->
+    <div id="pageTab" class="tab-content">
+      <h2>HTML → WordPress 固定ページ挿入用HTML変換</h2>
+      
+      <div class="settings-panel">
+        <h3>設定</h3>
+        <div class="form-group">
+          <label for="protocolSelect">プロトコル</label>
+          <select id="protocolSelect">
+            <option value="https://">https://</option>
+            <option value="http://">http://</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="domainInput">ドメイン（例: example.com）</label>
+          <input type="text" id="domainInput" placeholder="example.com" />
+        </div>
+        <div class="form-group">
+          <label for="yearInput">年</label>
+          <input type="number" id="yearInput" placeholder="2025" min="2000" max="2099" value="2025" />
+        </div>
+        <div class="form-group">
+          <label for="monthInput">月</label>
+          <input type="number" id="monthInput" placeholder="10" min="1" max="12" value="10" />
+        </div>
+      </div>
+
+      <h3>HTML入力</h3>
+      <textarea id="inputPageHtml" placeholder="ここにHTMLを貼り付けてください"></textarea>
+
+      <button onclick="convertForPage()">変換する</button>
+
+      <h3>変換結果（コピーして固定ページに貼り付け）</h3>
+      <textarea id="outputPageHtml" readonly></textarea>
+    </div>
 
     <script src="./common/js/index.js"></script>
   </body>
