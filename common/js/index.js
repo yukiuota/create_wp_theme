@@ -20,6 +20,10 @@ function switchTab(tabName) {
         document.getElementById('pageTab')?.classList.add('active');
         tabButtons[1]?.classList.add('active');
     }
+    else if (tabName === 'batch') {
+        document.getElementById('batchTab')?.classList.add('active');
+        tabButtons[2]?.classList.add('active');
+    }
 }
 // テーマファイル変換関数
 function convert() {
@@ -152,4 +156,152 @@ function convertForPage() {
 window.convert = convert;
 window.convertForPage = convertForPage;
 window.switchTab = switchTab;
+// 一括変換用のファイル管理
+let selectedFiles = [];
+// ファイル選択イベントリスナー
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('batchFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelect);
+    }
+});
+// ファイル選択ハンドラー
+function handleFileSelect(event) {
+    const input = event.target;
+    if (input.files) {
+        selectedFiles = Array.from(input.files);
+        updateFileList();
+    }
+}
+// ファイルリスト表示を更新
+function updateFileList() {
+    const fileListElement = document.getElementById('fileList');
+    const convertBtn = document.getElementById('convertBatchBtn');
+    if (!fileListElement || !convertBtn)
+        return;
+    if (selectedFiles.length === 0) {
+        fileListElement.innerHTML = '<p style="color: #999; text-align: center;">選択されたファイルはありません</p>';
+        convertBtn.disabled = true;
+        return;
+    }
+    convertBtn.disabled = false;
+    fileListElement.innerHTML = selectedFiles
+        .map((file, index) => `
+      <div class="file-item">
+        <span class="file-item-name">${file.name}</span>
+        <button class="file-item-remove" onclick="removeFile(${index})">削除</button>
+      </div>
+    `)
+        .join('');
+}
+// ファイルを削除
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    updateFileList();
+    // input要素もリセット
+    const fileInput = document.getElementById('batchFileInput');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+}
+// HTMLファイルをPHPに変換（既存のconvert関数のロジックを再利用）
+function convertHtmlToPhp(htmlContent) {
+    let html = htmlContent;
+    // 変換ルール（convert関数と同じ）
+    const rules = [
+        {
+            pattern: /<title>.*?<\/title>/,
+            replace: "<title><?php wp_title('|', true, 'right'); bloginfo('name'); ?></title>",
+        },
+        { pattern: /<\/head>/, replace: "<?php wp_head(); ?>\n</head>" },
+        { pattern: /<\/body>/, replace: "<?php wp_footer(); ?>\n</body>" },
+        { pattern: /<meta charset=".*?">/, replace: "<meta charset=\"<?php bloginfo('charset'); ?>\">" },
+        { pattern: /href=""/g, replace: "href=\"<?php echo esc_url( home_url( '' ) ); ?>\"" },
+        { pattern: /href="\/"(?=[^\/]|$)/g, replace: "href=\"<?php echo esc_url( home_url( '/' ) ); ?>\"" },
+        { pattern: /href="(\/[^"]*?)"/g, replace: "href=\"<?php echo esc_url( home_url( '$1' ) ); ?>\"" },
+        { pattern: /src=""/g, replace: "src=\"<?php echo esc_url( get_template_directory_uri() . '/' ); ?>\"" },
+        {
+            pattern: /src="(?!https?:\/\/|\/\/|#|javascript:|mailto:)([^"]+)"/g,
+            replace: "src=\"<?php echo esc_url( get_template_directory_uri() . '/$1' ); ?>\"",
+        },
+    ];
+    rules.forEach((rule) => {
+        html = html.replace(rule.pattern, rule.replace);
+    });
+    html = convertSrcset(html);
+    return html;
+}
+// 一括変換してZipダウンロード
+async function convertBatch() {
+    if (selectedFiles.length === 0) {
+        alert('ファイルを選択してください');
+        return;
+    }
+    const progressElement = document.getElementById('batchProgress');
+    const progressText = document.getElementById('progressText');
+    const convertBtn = document.getElementById('convertBatchBtn');
+    if (!progressElement || !progressText)
+        return;
+    // 進捗表示
+    progressElement.style.display = 'block';
+    convertBtn.disabled = true;
+    try {
+        // JSZipインスタンスを作成
+        const zip = new window.JSZip();
+        // 各ファイルを読み込んで変換
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            progressText.textContent = `変換中: ${file.name} (${i + 1}/${selectedFiles.length})`;
+            // ファイル内容を読み込み
+            const content = await readFileAsText(file);
+            // HTMLをPHPに変換
+            const convertedContent = convertHtmlToPhp(content);
+            // ファイル名を.phpに変更
+            const phpFileName = file.name.replace(/\.(html|htm)$/i, '.php');
+            // Zipに追加
+            zip.file(phpFileName, convertedContent);
+        }
+        progressText.textContent = 'Zipファイルを生成中...';
+        // Zipファイルを生成
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        // ダウンロード
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wordpress_theme_${new Date().getTime()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        progressText.textContent = `完了！ ${selectedFiles.length}個のファイルを変換しました`;
+        setTimeout(() => {
+            progressElement.style.display = 'none';
+            convertBtn.disabled = false;
+        }, 2000);
+    }
+    catch (error) {
+        console.error('変換エラー:', error);
+        progressText.textContent = `エラーが発生しました: ${error}`;
+        convertBtn.disabled = false;
+    }
+}
+// ファイルをテキストとして読み込むヘルパー関数
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (e.target?.result) {
+                resolve(e.target.result);
+            }
+            else {
+                reject(new Error('ファイルの読み込みに失敗しました'));
+            }
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+// グローバルスコープに新しい関数を公開
+window.convertBatch = convertBatch;
+window.removeFile = removeFile;
 //# sourceMappingURL=index.js.map

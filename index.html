@@ -6,6 +6,7 @@
   <title>HTML → WordPress 変換ツール</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="./common/css/index.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 
 <body>
@@ -15,6 +16,7 @@
   <div class="tabs">
     <button class="tab-button active" onclick="switchTab('theme')">テーマファイル変換</button>
     <button class="tab-button" onclick="switchTab('page')">固定ページHTML変換</button>
+    <button class="tab-button" onclick="switchTab('batch')">一括変換（複数ファイル）</button>
   </div>
 
   <!-- テーマファイル変換タブ -->
@@ -65,6 +67,25 @@
 
     <h3>変換結果（コピーして固定ページに貼り付け）</h3>
     <textarea id="outputPageHtml" readonly></textarea>
+  </div>
+
+  <!-- 一括変換タブ -->
+  <div id="batchTab" class="tab-content">
+    <h2>複数HTMLファイル → WordPress PHP 一括変換</h2>
+    <p>複数のHTMLファイルをアップロードして、WordPress用PHPファイルに一括変換し、Zipでダウンロードできます</p>
+
+    <div class="file-upload-section">
+      <h3>ファイル選択</h3>
+      <input type="file" id="batchFileInput" multiple accept=".html,.htm" />
+      <div id="fileList" class="file-list"></div>
+    </div>
+
+    <button onclick="convertBatch()" id="convertBatchBtn" disabled>一括変換してZipダウンロード</button>
+
+    <div id="batchProgress" class="batch-progress" style="display: none;">
+      <p>変換中...</p>
+      <div id="progressText"></div>
+    </div>
   </div>
 
   <script src="./common/js/index.js"></script>
